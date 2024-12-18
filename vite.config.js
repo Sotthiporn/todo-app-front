@@ -16,6 +16,6 @@ export default defineConfig({
         "process.env": process.env,
     },
     server: {
-        port: process.env.VITE_APP_PORT || 3000
+        port: process.env.VITE_APP_PORT || 5000
     }
 });

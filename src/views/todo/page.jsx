@@ -38,9 +38,12 @@ function ToDoList() {
     const [editText, setEditText] = useState("");
     const [loading, setLoading] = useState(false);
     const [loadingTodoId, setLoadingTodoId] = useState(null);
+    const [animation, setAnimation] = useState(false);
+    const [mounted, setMounted] = useState(false);
 
     const getTodos = async () => {
         try {
+            setMounted(false);
             setLoading(true);
             const todosData = await fetchTodos();
             setTodos(todosData?.data || []);
@@ -48,6 +51,7 @@ function ToDoList() {
             console.error("Error fetching todos", error);
         } finally {
             setLoading(false);
+            setMounted(true);
         }
     };
 
@@ -58,6 +62,7 @@ function ToDoList() {
                 const newTodoData = await addTodo(newTodo);
                 setTodos((prevTodos) => [newTodoData?.data, ...prevTodos]);
                 setNewTodo("");
+                setAnimation(true);
             }
         } catch (error) {
             console.error("Error adding todo", error);
@@ -168,6 +173,7 @@ function ToDoList() {
                                 onKeyPress={(e) =>
                                     e.key === "Enter" && handleAddTodo()
                                 }
+                                disabled={loading}
                             />
                             <Button onClick={handleAddTodo} disabled={loading}>
                                 {loading ? (
@@ -180,146 +186,170 @@ function ToDoList() {
                         </div>
                         <ScrollArea className="h-[300px] rounded-md border">
                             <div className="space-y-2 p-4">
-                                <AnimatePresence>
-                                    {todos.map((todo) => (
-                                        <motion.div
-                                            key={`item-${todo._id}`}
-                                            initial={{ opacity: 0, y: -10 }}
-                                            animate={{ opacity: 1, y: 0 }}
-                                            exit={{ opacity: 0, y: -10 }}
-                                            layout
-                                        >
-                                            <motion.div
-                                                className="flex items-center justify-between p-2 bg-secondary rounded-md"
-                                                initial={{
-                                                    backgroundColor: "#10B981",
-                                                }}
-                                                animate={{
-                                                    backgroundColor:
-                                                        "var(--secondary)",
-                                                }}
-                                                transition={{ duration: 0.5 }}
+                                {!mounted ? (
+                                    Array.from({ length: 5 }).map(
+                                        (_, index) => (
+                                            <div
+                                                key={index}
+                                                className="flex items-center justify-between w-full p-2"
                                             >
-                                                {loadingTodoId === todo._id ? (
-                                                    <div className="flex items-center justify-between w-full">
-                                                        <Skeleton className="h-5 w-5 rounded-full" />
-                                                        <Skeleton className="h-4 w-3/4 rounded" />
-                                                        <Skeleton className="h-8 w-8 rounded" />
-                                                    </div>
-                                                ) : (
-                                                    <>
-                                                        <div className="flex items-center space-x-2 flex-grow">
-                                                            <Button
-                                                                variant="ghost"
-                                                                size="sm"
-                                                                onClick={() =>
-                                                                    handleToggleComplete(
-                                                                        todo._id
-                                                                    )
-                                                                }
-                                                            >
-                                                                {todo.completed ? (
-                                                                    <CheckCircle2 className="h-5 w-5 text-primary" />
-                                                                ) : (
-                                                                    <Circle className="h-5 w-5" />
-                                                                )}
-                                                            </Button>
-                                                            {editTodoId ===
-                                                            todo._id ? (
-                                                                <Input
-                                                                    value={
-                                                                        editText
-                                                                    }
-                                                                    onChange={(
-                                                                        e
-                                                                    ) =>
-                                                                        setEditText(
-                                                                            e
-                                                                                .target
-                                                                                .value
-                                                                        )
-                                                                    }
-                                                                    className="flex-grow"
-                                                                />
-                                                            ) : (
-                                                                <span
-                                                                    className={
-                                                                        todo.completed
-                                                                            ? "line-through text-muted-foreground"
-                                                                            : ""
-                                                                    }
-                                                                >
-                                                                    {todo.text}
-                                                                </span>
-                                                            )}
+                                                <Skeleton className="h-5 w-5 rounded-full" />
+                                                <Skeleton className="h-4 w-3/4 rounded" />
+                                                <Skeleton className="h-8 w-8 rounded" />
+                                            </div>
+                                        )
+                                    )
+                                ) : (
+                                    <AnimatePresence>
+                                        {todos.map((todo) => (
+                                            <motion.div
+                                                key={`item-${todo._id}`}
+                                                initial={{ opacity: 0, y: -10 }}
+                                                animate={{ opacity: 1, y: 0 }}
+                                                exit={{ opacity: 0, y: -10 }}
+                                                layout
+                                            >
+                                                <motion.div
+                                                    className="flex items-center justify-between p-2 bg-secondary rounded-md"
+                                                    initial={
+                                                        animation && {
+                                                            backgroundColor:
+                                                                "#10B981",
+                                                        }
+                                                    }
+                                                    animate={{
+                                                        backgroundColor:
+                                                            "var(--secondary)",
+                                                    }}
+                                                    transition={{
+                                                        duration: 0.5,
+                                                    }}
+                                                >
+                                                    {loadingTodoId ===
+                                                    todo._id ? (
+                                                        <div className="flex items-center justify-between w-full">
+                                                            <Skeleton className="h-5 w-5 rounded-full" />
+                                                            <Skeleton className="h-4 w-3/4 rounded" />
+                                                            <Skeleton className="h-8 w-8 rounded" />
                                                         </div>
-                                                        <div className="flex space-x-1">
-                                                            {editTodoId ===
-                                                            todo._id ? (
+                                                    ) : (
+                                                        <>
+                                                            <div className="flex items-center space-x-2 flex-grow">
                                                                 <Button
-                                                                    className="ml-1"
                                                                     variant="ghost"
                                                                     size="sm"
                                                                     onClick={() =>
-                                                                        handleSaveTodo(
+                                                                        handleToggleComplete(
                                                                             todo._id
                                                                         )
                                                                     }
                                                                 >
-                                                                    <Save className="h-4 w-4 text-success" />
-                                                                    <span className="sr-only">
-                                                                        Save
-                                                                        todo
-                                                                    </span>
+                                                                    {todo.completed ? (
+                                                                        <CheckCircle2 className="h-5 w-5 text-primary" />
+                                                                    ) : (
+                                                                        <Circle className="h-5 w-5" />
+                                                                    )}
                                                                 </Button>
-                                                            ) : (
+                                                                {editTodoId ===
+                                                                todo._id ? (
+                                                                    <Input
+                                                                        value={
+                                                                            editText
+                                                                        }
+                                                                        onChange={(
+                                                                            e
+                                                                        ) =>
+                                                                            setEditText(
+                                                                                e
+                                                                                    .target
+                                                                                    .value
+                                                                            )
+                                                                        }
+                                                                        className="flex-grow"
+                                                                    />
+                                                                ) : (
+                                                                    <span
+                                                                        className={
+                                                                            todo.completed
+                                                                                ? "line-through text-muted-foreground"
+                                                                                : ""
+                                                                        }
+                                                                    >
+                                                                        {
+                                                                            todo.text
+                                                                        }
+                                                                    </span>
+                                                                )}
+                                                            </div>
+                                                            <div className="flex space-x-1">
+                                                                {editTodoId ===
+                                                                todo._id ? (
+                                                                    <Button
+                                                                        className="ml-1"
+                                                                        variant="ghost"
+                                                                        size="sm"
+                                                                        onClick={() =>
+                                                                            handleSaveTodo(
+                                                                                todo._id
+                                                                            )
+                                                                        }
+                                                                    >
+                                                                        <Save className="h-4 w-4 text-success" />
+                                                                        <span className="sr-only">
+                                                                            Save
+                                                                            todo
+                                                                        </span>
+                                                                    </Button>
+                                                                ) : (
+                                                                    <Button
+                                                                        variant="ghost"
+                                                                        size="sm"
+                                                                        onClick={() =>
+                                                                            handleEditTodo(
+                                                                                todo._id,
+                                                                                todo.text
+                                                                            )
+                                                                        }
+                                                                    >
+                                                                        <Edit2 className="h-4 w-4 text-primary" />
+                                                                        <span className="sr-only">
+                                                                            Edit
+                                                                            todo
+                                                                        </span>
+                                                                    </Button>
+                                                                )}
                                                                 <Button
                                                                     variant="ghost"
                                                                     size="sm"
                                                                     onClick={() =>
-                                                                        handleEditTodo(
-                                                                            todo._id,
-                                                                            todo.text
+                                                                        handleDeleteTodo(
+                                                                            todo._id
                                                                         )
                                                                     }
+                                                                    disabled={
+                                                                        loadingTodoId ===
+                                                                        todo._id
+                                                                    }
                                                                 >
-                                                                    <Edit2 className="h-4 w-4 text-primary" />
+                                                                    {loadingTodoId ===
+                                                                    todo._id ? (
+                                                                        <Loader className="h-4 w-4 animate-spin" />
+                                                                    ) : (
+                                                                        <Trash2 className="h-4 w-4 text-destructive" />
+                                                                    )}
                                                                     <span className="sr-only">
-                                                                        Edit
+                                                                        Delete
                                                                         todo
                                                                     </span>
                                                                 </Button>
-                                                            )}
-                                                            <Button
-                                                                variant="ghost"
-                                                                size="sm"
-                                                                onClick={() =>
-                                                                    handleDeleteTodo(
-                                                                        todo._id
-                                                                    )
-                                                                }
-                                                                disabled={
-                                                                    loadingTodoId ===
-                                                                    todo._id
-                                                                }
-                                                            >
-                                                                {loadingTodoId ===
-                                                                todo._id ? (
-                                                                    <Loader className="h-4 w-4 animate-spin" />
-                                                                ) : (
-                                                                    <Trash2 className="h-4 w-4 text-destructive" />
-                                                                )}
-                                                                <span className="sr-only">
-                                                                    Delete todo
-                                                                </span>
-                                                            </Button>
-                                                        </div>
-                                                    </>
-                                                )}
+                                                            </div>
+                                                        </>
+                                                    )}
+                                                </motion.div>
                                             </motion.div>
-                                        </motion.div>
-                                    ))}
-                                </AnimatePresence>
+                                        ))}
+                                    </AnimatePresence>
+                                )}
                             </div>
                         </ScrollArea>
                     </div>
@@ -334,23 +364,21 @@ function ToDoList() {
                     </div>
                 </CardContent>
 
-                {todos.length ? (
-                    <CardFooter>
-                        <div className="flex justify-between w-full">
-                            <Button
-                                variant="outline"
-                                onClick={handleResetAllTodos}
-                                disabled={loading}
-                            >
-                                Reset All
-                            </Button>
-                            <div className="text-sm text-muted-foreground">
-                                {todos.filter((item) => item?.completed).length}{" "}
-                                Completed / {todos.length}
-                            </div>
+                <CardFooter>
+                    <div className="flex justify-between w-full">
+                        <Button
+                            variant="outline"
+                            onClick={handleResetAllTodos}
+                            disabled={!todos.length || loading}
+                        >
+                            Reset All
+                        </Button>
+                        <div className="text-sm text-muted-foreground">
+                            {todos.filter((item) => item?.completed).length}{" "}
+                            Completed / {todos.length}
                         </div>
-                    </CardFooter>
-                ) : null}
+                    </div>
+                </CardFooter>
             </Card>
         </div>
     );
