@@ -168,6 +168,7 @@ function ToDoList() {
                         <div className="flex space-x-2">
                             <Input
                                 type="text"
+                                id="todo-input"
                                 placeholder="Add a new todo"
                                 value={newTodo}
                                 onChange={(e) => setNewTodo(e.target.value)}
@@ -200,6 +201,37 @@ function ToDoList() {
                                             </div>
                                         )
                                     )
+                                ) : !todos.length ? (
+                                    <motion.div
+                                        initial={{ opacity: 0, y: 20 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        className="flex flex-col items-center justify-center h-full py-10 text-center"
+                                    >
+                                        <div
+                                            className="text-muted-foreground mb-4"
+                                        />
+                                        <h3 className="text-lg font-semibold mb-2 text-muted-foreground">
+                                            Your todo list is empty
+                                        </h3>
+                                        <p className="text-sm text-muted-foreground mb-4">
+                                            Start by adding your first todo
+                                            above
+                                        </p>
+                                        <Button
+                                            variant="outline"
+                                            onClick={() =>
+                                                document
+                                                    .querySelector(
+                                                        'input[id="todo-input"]'
+                                                    )
+                                                    .focus()
+                                            }
+                                            className="flex items-center space-x-2"
+                                        >
+                                            <Plus className="h-4 w-4" />
+                                            <span>Add First Todo</span>
+                                        </Button>
+                                    </motion.div>
                                 ) : (
                                     <AnimatePresence>
                                         {todos.map((todo) => (
