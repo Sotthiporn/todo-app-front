@@ -129,6 +129,7 @@ function ToDoList() {
     };
 
     const handleResetAllTodos = async () => {
+        if (!todos.length) return;
         try {
             setLoading(true);
             await resetAllTodosComplete();
